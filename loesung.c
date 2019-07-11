@@ -209,12 +209,16 @@ node *readDictionary(char *filepath) {
   char *translation = NULL;
 
   while (!stop) {
+    // Iteriere ueber das Woerterbuch
     int current = fgetc(fp);
     switch (state) {
       case StateWord:
+      // StateWord, wenn das deutsche Wort verarbeitet wird
         if (islower(current)) {
+          // Wenn kleiner Buchstabe, zum Wort hinzufuegen
           tempWord[len++] = current;
           if (len + 1 == max) {
+            // Wenn Buffergrenze erreicht, dann verdopple Buffer
             max += max;
             void *tmp = realloc(tempWord, max);
             if (NULL == tmp) {
@@ -224,12 +228,14 @@ node *readDictionary(char *filepath) {
             }
           }
         } else if (current == ':' && len > 0) {
+          // Wenn Doppelpunkt und Wort laenger als 0, dann wechseln in StateTranslation
           tempWord[len] = '\0';
           word = malloc(len + 1);
           if (word == 0) {
             quit("Memory allocation failed. (readDirectory)");
           }
           strcpy(word, tempWord);
+          // Speichere das deutsche Wort in word
           len = 0;
           max = 20;
           void *tmp = realloc(tempWord, max);
@@ -240,6 +246,7 @@ node *readDictionary(char *filepath) {
           }
           state = StateTranslation;
         } else if (current == EOF) {
+          // Wenn EOF, beende Schleife
           free(tempWord);
           stop = true;
         } else {
@@ -247,6 +254,7 @@ node *readDictionary(char *filepath) {
         }
         break;
       case StateTranslation:
+      // StateTranslation, wenn die Uebersetzung verarbeitet wird
         if (islower(current)) {
           tempWord[len++] = current;
           if (len + 1 == max) {
@@ -259,6 +267,8 @@ node *readDictionary(char *filepath) {
             }
           }
         } else if (current == '\n' && len > 0) {
+          // Wenn newline und Uebersetzung groeßer 0, dann speichere Uebersetzung und fuege
+          // Eintrag dem Rot-Schwarz-Baum hinzu
           tempWord[len] = '\0';
           translation = malloc(len + 1);
           if (translation == 0) {
@@ -280,6 +290,7 @@ node *readDictionary(char *filepath) {
         }
         break;
       default:
+      // Wenn irgendeine falsche Eingabe kommt
         free(tempWord);
         quit("Falsche Formatierung im Wörterbuch.");
         stop = true;
@@ -303,8 +314,10 @@ int readText(node *root) {
     quit("Memory allocation failed. (readText)");
   }
   while (con) {
+    // Iteriere durch den Text
     int ch = fgetc(stdin);
 
+    // Pruefe auf richtige Eingabe
     if (ch < 32 || ch > 126)
     {
       if (ch != 10 && ch != EOF)
@@ -315,9 +328,11 @@ int readText(node *root) {
     
     if (islower(ch) || isupper(ch)) {
       if (isupper(ch)) {
+        // Speichere, dass ein Wort einen Großbuchstaben enthaelt
         inclUpper = true;
       }
       inWord = true;
+      // Speichere, ob man sich in einem Wort befindet
       word[len++] = ch;
       if (len + 1 == max) {
         max += max;
@@ -333,6 +348,7 @@ int readText(node *root) {
         word[len] = '\0';
         char *translation = NULL;
         if (inclUpper) {
+          // Formatiere Wort zu Kleinbuchstaben fuer das suchen im Wb
           char *temp = malloc(len + 1);
           if (temp == 0) {
             quit("Memory allocation failed. (readText)");
@@ -345,6 +361,7 @@ int readText(node *root) {
           }
 
           if (translation != NULL) {
+            // Gebe Uebersetzung aus wenn gefunden, mit Groß Klein
             char *c = translation;
             if (isupper(word[0])) {
               char firstChar = toupper(translation[0]);
@@ -361,6 +378,7 @@ int readText(node *root) {
           inclUpper = false;
           free(temp);
         } else {
+          // Gib Uebersetzung aus
           translation = searchTree(root, word);
           if (translation != NULL) {
             fputs(translation, stdout);
@@ -373,6 +391,7 @@ int readText(node *root) {
         }
 
         if (ch == EOF) {
+          // Terminiere Schleife
           con = false;
         } else {
           fputc(ch, stdout);
