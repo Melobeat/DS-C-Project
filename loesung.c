@@ -293,7 +293,6 @@ node *readDictionary(char *filepath) {
 }
 
 int readText(node *root) {
-  int ch;
   bool inWord = false;
   bool inclUpper = false;
   size_t max = 20;
@@ -304,10 +303,11 @@ int readText(node *root) {
     quit("Memory allocation failed. (readText)");
   }
   while (con) {
-    ch = fgetc(stdin);
-    if (ch < 32 && ch > 126)
+    int ch = fgetc(stdin);
+
+    if (ch < 32 || ch > 126)
     {
-      if (ch != 10)
+      if (ch != 10 && ch != EOF)
       {
         quit("Falsches Zeichen im Eingabetext.");
       }
@@ -345,10 +345,9 @@ int readText(node *root) {
           }
 
           if (translation != NULL) {
-            char firstChar;
             char *c = translation;
             if (isupper(word[0])) {
-              firstChar = toupper(translation[0]);
+              char firstChar = toupper(translation[0]);
               c++;
               fputc(firstChar, stdout);
             }
