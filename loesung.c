@@ -43,7 +43,7 @@ void quit(char *message) {
 node *newNode(char *word, char *translation) {
   node *temp = (node *)malloc(sizeof(node));
   if (temp == 0) {
-    quit("Memory allocation failed. (newNode)");
+    quit("Memory allocation failed. (46)");
 
     return NULL;
   } else {
@@ -193,7 +193,7 @@ enum states { StateWord, StateTranslation };
 node *readDictionary(char *filepath) {
   FILE *fp = fopen(filepath, "r");
   if (!fp) {
-    quit("Failed to open dictionary. (readDictionary)");
+    quit("Failed to open dictionary. (196)");
   }
 
   bool stop = false;
@@ -203,7 +203,7 @@ node *readDictionary(char *filepath) {
   size_t max = 20;
   char *tempWord = malloc(max);
   if (tempWord == 0) {
-    quit("Memory allocation failed. (readDirectory)");
+    quit("Memory allocation failed. (206)");
   }
   char *word = NULL;
   char *translation = NULL;
@@ -222,7 +222,7 @@ node *readDictionary(char *filepath) {
             max += max;
             void *tmp = realloc(tempWord, max);
             if (NULL == tmp) {
-              quit("Memory reallocation failed. (readDirectory)");
+              quit("Memory reallocation failed. (225)");
             } else {
               tempWord = tmp;
             }
@@ -232,7 +232,7 @@ node *readDictionary(char *filepath) {
           tempWord[len] = '\0';
           word = malloc(len + 1);
           if (word == 0) {
-            quit("Memory allocation failed. (readDirectory)");
+            quit("Memory allocation failed. (235)");
           }
           strcpy(word, tempWord);
           // Speichere das deutsche Wort in word
@@ -240,7 +240,7 @@ node *readDictionary(char *filepath) {
           max = 20;
           void *tmp = realloc(tempWord, max);
           if (NULL == tmp) {
-            quit("Memory reallocation failed. (readDirectory)");
+            quit("Memory reallocation failed. (243)");
           } else {
             tempWord = tmp;
           }
@@ -261,18 +261,18 @@ node *readDictionary(char *filepath) {
             max += max;
             void *tmp = realloc(tempWord, max);
             if (NULL == tmp) {
-              quit("Memory reallocation failed. (readDirectory)");
+              quit("Memory reallocation failed. (264)");
             } else {
               tempWord = tmp;
             }
           }
         } else if (current == '\n' && len > 0) {
-          // Wenn newline und Uebersetzung groeßer 0, dann speichere Uebersetzung und fuege
+          // Wenn newline und Uebersetzung groesser 0, dann speichere Uebersetzung und fuege
           // Eintrag dem Rot-Schwarz-Baum hinzu
           tempWord[len] = '\0';
           translation = malloc(len + 1);
           if (translation == 0) {
-            quit("Memory allocation failed. (readDirectory)");
+            quit("Memory allocation failed. (275)");
           }
           strcpy(translation, tempWord);
           redBlackInsert(&root, word, translation);
@@ -280,7 +280,7 @@ node *readDictionary(char *filepath) {
           max = 20;
           void *tmp = realloc(tempWord, max);
           if (NULL == tmp) {
-            quit("Memory reallocation failed. (readDirectory)");
+            quit("Memory reallocation failed. (283)");
           } else {
             tempWord = tmp;
           }
@@ -292,7 +292,7 @@ node *readDictionary(char *filepath) {
       default:
       // Wenn irgendeine falsche Eingabe kommt
         free(tempWord);
-        quit("Falsche Formatierung im Wörterbuch.");
+        quit("Falsche Formatierung im Woerterbuch. (295)");
         stop = true;
         break;
     }
@@ -311,7 +311,7 @@ int readText(node *root) {
   bool con = true;
   char *word = malloc(max);
   if (word == 0) {
-    quit("Memory allocation failed. (readText)");
+    quit("Memory allocation failed. (314)");
   }
   while (con) {
     // Iteriere durch den Text
@@ -322,13 +322,13 @@ int readText(node *root) {
     {
       if (ch != 10 && ch != EOF)
       {
-        quit("Falsches Zeichen im Eingabetext.");
+        quit("Falsches Zeichen im Eingabetext. (325)");
       }
     }
     
     if (islower(ch) || isupper(ch)) {
       if (isupper(ch)) {
-        // Speichere, dass ein Wort einen Großbuchstaben enthaelt
+        // Speichere, dass ein Wort einen Grossbuchstaben enthaelt
         inclUpper = true;
       }
       inWord = true;
@@ -338,7 +338,7 @@ int readText(node *root) {
         max += max;
         void *tmp = realloc(word, max);
         if (NULL == tmp) {
-          quit("Memory reallocation failed. (readText)");
+          quit("Memory reallocation failed. (341)");
         } else {
           word = tmp;
         }
@@ -351,7 +351,7 @@ int readText(node *root) {
           // Formatiere Wort zu Kleinbuchstaben fuer das suchen im Wb
           char *temp = malloc(len + 1);
           if (temp == 0) {
-            quit("Memory allocation failed. (readText)");
+            quit("Memory allocation failed. (354)");
           } else {
             for (size_t i = 0; i < len; ++i) {
               temp[i] = tolower(word[i]);
@@ -361,7 +361,7 @@ int readText(node *root) {
           }
 
           if (translation != NULL) {
-            // Gebe Uebersetzung aus wenn gefunden, mit Groß Klein
+            // Gebe Uebersetzung aus wenn gefunden, mit Gross Klein
             char *c = translation;
             if (isupper(word[0])) {
               char firstChar = toupper(translation[0]);
@@ -409,7 +409,7 @@ int readText(node *root) {
         free(word);
         word = malloc(max);
         if (word == 0) {
-          quit("Memory allocation failed. ()");
+          quit("Memory allocation failed. (412)");
         }
 
       } else {
@@ -433,7 +433,7 @@ int main(int argc, char *argv[]) {
     root = readDictionary(argv[1]);
     readText(root);
   } else {
-    quit("Not enough arguments. (407)");
+    quit("Not enough arguments. (436)");
   }
 
   freeTree(root);
