@@ -19,7 +19,6 @@ typedef struct node {
 
 struct node tNilNode;
 node *tNil = &tNilNode;
-node *fRoot = NULL;
 int returnNumber = 0;
 
 void freeTree(node *root) {
@@ -33,9 +32,13 @@ void freeTree(node *root) {
   }
 }
 
-void quit(char *message) {
-  fprintf(stderr, "ERROR: %s\n", message);
-  freeTree(fRoot);
+void quit(char *message, node *root) {
+  fprintf(stderr, "Fehler: %s\n", message);
+
+  if (root != NULL)
+  {
+    freeTree(root);
+  }  
   
   exit(2);
 }
@@ -43,8 +46,6 @@ void quit(char *message) {
 node *newNode(char *word, char *translation) {
   node *temp = (node *)malloc(sizeof(node));
   if (temp == 0) {
-    quit("Memory allocation failed. (46)");
-
     return NULL;
   } else {
     temp->word = word;
@@ -128,8 +129,13 @@ void redBlackInsertFixup(node **t, node *z) {
   t[0]->color = BLACK;
 }
 
-void redBlackInsert(node **t, char *word, char *translation) {
+int redBlackInsert(node **t, char *word, char *translation) {
   node *z = newNode(word, translation);
+  if (z == NULL)
+  {
+    return 1;
+  }
+  
   node *y = tNil;
   node *x = *t;
 
@@ -138,7 +144,8 @@ void redBlackInsert(node **t, char *word, char *translation) {
     y = x;
     int cmp = strcmp(z->word, x->word);
     if (cmp == 0) {
-
+      free(z);
+      return 2;
     } else if (cmp < 0)
       x = x->left;
     else
@@ -160,6 +167,8 @@ void redBlackInsert(node **t, char *word, char *translation) {
 
   // Ensure the Red-Black property is maintained
   redBlackInsertFixup(t, z);
+
+  return 0;
 }
 
 char *searchTree(node *root, char *word) {
@@ -181,19 +190,12 @@ char *searchTree(node *root, char *word) {
   return NULL;
 }
 
-void printTree(node *root) {
-  printf("%s:%s %c (Left:%s Right:%s) --", root->word, root->translation,
-         root->color, root->left->word, root->right->word);
-  if (root->left != tNil) printTree(root->left);
-  if (root->right != tNil) printTree(root->right);
-}
-
 enum states { StateWord, StateTranslation };
 
 node *readDictionary(char *filepath) {
   FILE *fp = fopen(filepath, "r");
   if (!fp) {
-    quit("Failed to open dictionary. (196)");
+    quit("Konnte Woerterbuch nicht oeffnen.", NULL);
   }
 
   bool stop = false;
@@ -203,7 +205,8 @@ node *readDictionary(char *filepath) {
   size_t max = 20;
   char *tempWord = malloc(max);
   if (tempWord == 0) {
-    quit("Memory allocation failed. (206)");
+    fclose(fp);
+    quit("Memory allocation failed.", root);
   }
   char *word = NULL;
   char *translation = NULL;
@@ -222,7 +225,9 @@ node *readDictionary(char *filepath) {
             max += max;
             void *tmp = realloc(tempWord, max);
             if (NULL == tmp) {
-              quit("Memory reallocation failed. (225)");
+              free(tempWord);
+              fclose(fp);
+              quit("Memory reallocation failed.", root);
             } else {
               tempWord = tmp;
             }
@@ -232,7 +237,9 @@ node *readDictionary(char *filepath) {
           tempWord[len] = '\0';
           word = malloc(len + 1);
           if (word == 0) {
-            quit("Memory allocation failed. (235)");
+            free(tempWord);
+            fclose(fp);
+            quit("Memory allocation failed.", root);
           }
           strcpy(word, tempWord);
           // Speichere das deutsche Wort in word
@@ -240,7 +247,10 @@ node *readDictionary(char *filepath) {
           max = 20;
           void *tmp = realloc(tempWord, max);
           if (NULL == tmp) {
-            quit("Memory reallocation failed. (243)");
+            free(word);
+            free(tempWord);
+            fclose(fp);
+            quit("Memory reallocation failed.", root);
           } else {
             tempWord = tmp;
           }
@@ -261,7 +271,10 @@ node *readDictionary(char *filepath) {
             max += max;
             void *tmp = realloc(tempWord, max);
             if (NULL == tmp) {
-              quit("Memory reallocation failed. (264)");
+              free(tempWord);
+              free(word);
+              fclose(fp);
+              quit("Memory reallocation failed.", root);
             } else {
               tempWord = tmp;
             }
@@ -272,27 +285,47 @@ node *readDictionary(char *filepath) {
           tempWord[len] = '\0';
           translation = malloc(len + 1);
           if (translation == 0) {
-            quit("Memory allocation failed. (275)");
+            free(tempWord);
+            free(word);
+            fclose(fp);
+            quit("Memory allocation failed.", root);
           }
           strcpy(translation, tempWord);
-          redBlackInsert(&root, word, translation);
+          int s = redBlackInsert(&root, word, translation);
+          if (s == 1) {
+            free(tempWord);
+            free(translation);
+            free(word);
+            fclose(fp);
+            quit("Memory allocation failed.", root);
+          } else if (s == 2){
+            free(tempWord);
+            free(translation);
+            free(word);
+            fclose(fp);
+            quit("Doppeltes Wort im Woerterbuch.", root);
+          }
           len = 0;
           max = 20;
           void *tmp = realloc(tempWord, max);
           if (NULL == tmp) {
-            quit("Memory reallocation failed. (283)");
+            free(tempWord);
+            fclose(fp);
+            quit("Memory reallocation failed.", root);
           } else {
             tempWord = tmp;
           }
           state = StateWord;
         } else {
+          free(word);
           state = ERROR;
         }
         break;
       default:
       // Wenn irgendeine falsche Eingabe kommt
         free(tempWord);
-        quit("Falsche Formatierung im Woerterbuch. (295)");
+        fclose(fp);
+        quit("Falsche Formatierung im Woerterbuch.", root);
         stop = true;
         break;
     }
@@ -311,7 +344,7 @@ int readText(node *root) {
   bool con = true;
   char *word = malloc(max);
   if (word == 0) {
-    quit("Memory allocation failed. (314)");
+    quit("Memory allocation failed.", root);
   }
   while (con) {
     // Iteriere durch den Text
@@ -322,7 +355,8 @@ int readText(node *root) {
     {
       if (ch != 10 && ch != EOF)
       {
-        quit("Falsches Zeichen im Eingabetext. (325)");
+        free(word);
+        quit("Falsches Zeichen im Eingabetext.", root);
       }
     }
     
@@ -338,7 +372,8 @@ int readText(node *root) {
         max += max;
         void *tmp = realloc(word, max);
         if (NULL == tmp) {
-          quit("Memory reallocation failed. (341)");
+          free(word);
+          quit("Memory reallocation failed.", root);
         } else {
           word = tmp;
         }
@@ -351,7 +386,8 @@ int readText(node *root) {
           // Formatiere Wort zu Kleinbuchstaben fuer das suchen im Wb
           char *temp = malloc(len + 1);
           if (temp == 0) {
-            quit("Memory allocation failed. (354)");
+            free(word);
+            quit("Memory allocation failed.", root);
           } else {
             for (size_t i = 0; i < len; ++i) {
               temp[i] = tolower(word[i]);
@@ -409,7 +445,7 @@ int readText(node *root) {
         free(word);
         word = malloc(max);
         if (word == 0) {
-          quit("Memory allocation failed. (412)");
+          quit("Memory allocation failed.", root);
         }
 
       } else {
@@ -427,13 +463,13 @@ int readText(node *root) {
 }
 
 int main(int argc, char *argv[]) {
-  node *root = fRoot;
+  node *root = NULL;
 
   if (argc == 2) {
     root = readDictionary(argv[1]);
     readText(root);
   } else {
-    quit("Not enough arguments. (436)");
+    quit("Woerterbuch nicht angegeben.", root);
   }
 
   freeTree(root);
