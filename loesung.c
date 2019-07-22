@@ -35,11 +35,10 @@ void freeTree(node *root) {
 void quit(char *message, node *root) {
   fprintf(stderr, "Fehler: %s\n", message);
 
-  if (root != NULL)
-  {
+  if (root != NULL) {
     freeTree(root);
-  }  
-  
+  }
+
   exit(2);
 }
 
@@ -131,11 +130,10 @@ void redBlackInsertFixup(node **t, node *z) {
 
 int redBlackInsert(node **t, char *word, char *translation) {
   node *z = newNode(word, translation);
-  if (z == NULL)
-  {
+  if (z == NULL) {
     return 1;
   }
-  
+
   node *y = tNil;
   node *x = *t;
 
@@ -216,7 +214,7 @@ node *readDictionary(char *filepath) {
     int current = fgetc(fp);
     switch (state) {
       case StateWord:
-      // StateWord, wenn das deutsche Wort verarbeitet wird
+        // StateWord, wenn das deutsche Wort verarbeitet wird
         if (islower(current)) {
           // Wenn kleiner Buchstabe, zum Wort hinzufuegen
           tempWord[len++] = current;
@@ -233,7 +231,8 @@ node *readDictionary(char *filepath) {
             }
           }
         } else if (current == ':' && len > 0) {
-          // Wenn Doppelpunkt und Wort laenger als 0, dann wechseln in StateTranslation
+          // Wenn Doppelpunkt und Wort laenger als 0, dann wechseln in
+          // StateTranslation
           tempWord[len] = '\0';
           word = malloc(len + 1);
           if (word == 0) {
@@ -264,7 +263,7 @@ node *readDictionary(char *filepath) {
         }
         break;
       case StateTranslation:
-      // StateTranslation, wenn die Uebersetzung verarbeitet wird
+        // StateTranslation, wenn die Uebersetzung verarbeitet wird
         if (islower(current)) {
           tempWord[len++] = current;
           if (len + 1 == max) {
@@ -280,8 +279,8 @@ node *readDictionary(char *filepath) {
             }
           }
         } else if (current == '\n' && len > 0) {
-          // Wenn newline und Uebersetzung groesser 0, dann speichere Uebersetzung und fuege
-          // Eintrag dem Rot-Schwarz-Baum hinzu
+          // Wenn newline und Uebersetzung groesser 0, dann speichere
+          // Uebersetzung und fuege Eintrag dem Rot-Schwarz-Baum hinzu
           tempWord[len] = '\0';
           translation = malloc(len + 1);
           if (translation == 0) {
@@ -298,7 +297,7 @@ node *readDictionary(char *filepath) {
             free(word);
             fclose(fp);
             quit("Memory allocation failed.", root);
-          } else if (s == 2){
+          } else if (s == 2) {
             free(tempWord);
             free(translation);
             free(word);
@@ -322,7 +321,7 @@ node *readDictionary(char *filepath) {
         }
         break;
       default:
-      // Wenn irgendeine falsche Eingabe kommt
+        // Wenn irgendeine falsche Eingabe kommt
         free(tempWord);
         fclose(fp);
         quit("Falsche Formatierung im Woerterbuch.", root);
@@ -351,15 +350,13 @@ int readText(node *root) {
     int ch = fgetc(stdin);
 
     // Pruefe auf richtige Eingabe
-    if (ch < 32 || ch > 126)
-    {
-      if (ch != 10 && ch != EOF)
-      {
+    if (ch < 32 || ch > 126) {
+      if (ch != 10 && ch != EOF) {
         free(word);
         quit("Falsches Zeichen im Eingabetext.", root);
       }
     }
-    
+
     if (islower(ch) || isupper(ch)) {
       if (isupper(ch)) {
         // Speichere, dass ein Wort einen Grossbuchstaben enthaelt
